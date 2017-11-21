@@ -29,8 +29,8 @@ class PageRank():
         Parameters
         ----------
         adj_mat: np.ndarray
-            This is the nonnegative square adjacency matrix of the web. Each
-            element (i, j) of the matrix is 1 if there is a link from web page
+            The nonnegative square adjacency matrix of the web. Each element
+            (i, j) of the matrix is 1 if there is a link from web page
             i to web page j, and 0 otherwise.
 
         Returns
