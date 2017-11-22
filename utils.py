@@ -17,4 +17,58 @@ def random_graph(node_count, prob):
     adj_mat: numpy.ndarray
         A numpy array of size (node_count, node_count) with elements in {0, 1}
     """
-    return np.random.binomial(1, 0.01, size=(1000, 1000))
+    return np.random.binomial(1, prob, size=(node_count, node_count)).astype(
+        np.float64)
+
+
+def adj_mat_to_list(adj_mat):
+    """
+    Converts an adjacency matrix to an adjacency list.
+
+    Parameters
+    ----------
+    adj_mat: numpy.ndarray
+        Square adjacency matrix of a graph
+
+    Returns
+    -------
+    adj_list: list
+        The adjacency list of the given matrix
+    """
+    assert adj_mat.ndim == 2, 'Adjacency matrix should be of rank 2.'
+    assert adj_mat.shape[0] == adj_mat.shape[1], 'Adjacency matrix' \
+        ' should be square.'
+    assert np.all(adj_mat >= 0), 'All elements of the adjaceny matrix ' \
+        'should be nonnegative.'
+    adj_list = []
+    for i in range(adj_mat.shape[0]):
+        adj_list.append([])
+        for j in range(adj_mat.shape[0]):
+            if adj_mat[i, j] > 0:
+                adj_list[-1].append(j)
+
+    return adj_list
+
+
+def adj_list_to_mat(adj_list):
+    """
+    Converts an adjacency list to an adjacency matrix.
+
+    Parameters
+    ----------
+    adj_list: list
+        Adjacency list of a graph
+
+    Returns
+    -------
+    adj_mat: numpy.ndarray
+        Square adjacency matrix of a graph
+    """
+    assert type(adj_list) == list, 'Adjacency list should be provided'
+
+    adj_mat = np.zeros((len(adj_list), len(adj_list)), dtype=np.float64)
+    for i in range(len(adj_list)):
+        for j in adj_list[i]:
+            adj_mat[i, j] = 1.0
+
+    return adj_mat
