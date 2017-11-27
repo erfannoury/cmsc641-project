@@ -3,7 +3,7 @@ import scipy as sc
 from scipy import linalg
 
 
-def powerIteration(self, A,num_simulations):
+def powerIteration(A,num_simulations):
         """
         Algorithm to compute the dominant eigen vector(v) of given matrix(A). Stops after num_simulations iterations.
 
@@ -55,9 +55,9 @@ class HITS():
         hub_mat = np.matmul(adj_mat,np.transpose(adj_mat))
 
 
-        au_scores = powerIteration(self, au_mat,num_simulations)
+        au_scores = powerIteration(au_mat,num_simulations)
         au_scores = au_scores/linalg.norm(au_scores)
-        hub_scores = powerIteration(self,hub_mat,num_simulations)
+        hub_scores = powerIteration(hub_mat,num_simulations)
         hub_scores = hub_scores/linalg.norm(hub_scores)
 
         return au_scores,hub_scores
