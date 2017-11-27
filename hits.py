@@ -56,7 +56,7 @@ class HITS():
 
         return au_scores,hub_scores
 
-def powerIteration(A,num_simulations):
+    def powerIteration(A,num_simulations):
         """
         Algorithm to compute the dominant eigen vector(v) of given matrix(A). Stops after num_simulations iterations.
 
