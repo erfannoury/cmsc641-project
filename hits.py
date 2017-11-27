@@ -3,34 +3,6 @@ import scipy as sc
 from scipy import linalg
 
 
-def powerIteration(A,num_simulations):
-        """
-        Algorithm to compute the dominant eigen vector(v) of given matrix(A). Stops after num_simulations iterations.
-
-        Parameters
-        ----------
-        A: np.ndarray
-            
-        Returns
-        -------
-        v:  np.ndarray
-            Dominant eigen vector of A
-
-        """
-        v = np.random.rand(A.shape[0])
-
-        for _ in range(num_simulations):
-            # calculate the matrix-by-vector product Av
-            v1 = np.dot(adj_mat, v)
-
-            # calculate the norm
-            v1_norm = np.linalg.norm(v1)
-
-            # re-normalize the vector
-            v = v1 / v1_norm
-            
-        return v
-
 
 class HITS():
     """
@@ -83,6 +55,34 @@ class HITS():
         hub_scores = -V[:,0]
 
         return au_scores,hub_scores
+
+def powerIteration(A,num_simulations):
+        """
+        Algorithm to compute the dominant eigen vector(v) of given matrix(A). Stops after num_simulations iterations.
+
+        Parameters
+        ----------
+        A: np.ndarray
+            
+        Returns
+        -------
+        v:  np.ndarray
+            Dominant eigen vector of A
+
+        """
+        v = np.random.rand(A.shape[0])
+
+        for _ in range(num_simulations):
+            # calculate the matrix-by-vector product Av
+            v1 = np.dot(adj_mat, v)
+
+            # calculate the norm
+            v1_norm = np.linalg.norm(v1)
+
+            # re-normalize the vector
+            v = v1 / v1_norm
+            
+        return v
 
 
 
