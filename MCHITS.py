@@ -60,7 +60,7 @@ class MCHITS():
                 while np.random.random() > self.stopping_prob:
                     #if (np.sum(children) + np.sum(father)) == 0:  #if there are no neighbours --> stop
 
-                    neighbours = children+father
+                    neighbours = list(set(children+father))
                     # pick one neighbour at random
                     next_step = np.random.choice(neighbours)
                     total_steps[node]+=1
@@ -69,13 +69,13 @@ class MCHITS():
                     else:
                         hub_scores[node]+=1
 
-        au_scores = au_scores/total_steps
+        au_scores = au_scores/total_steps.sum()
         return au_scores.reshape((1,n))
 
-""" Sample 
+"""
 p1 = MCHITS(0.5)
 adj_mat = np.array([[0, 0, 1, 0,0,0,0],[0, 1, 1, 0,0,0,0],[1, 0, 1, 2,0,0,0],[0,0,1, 1,0,0,0],[0, 0, 0, 0,0,0,1],[0, 0, 0, 0,0,1,1],[0, 0, 0, 2,1,0,1]])
 print(adj_mat)
 sol = p1.calculate(adj_mat,10)
-print(sol)
+print(sol.sum())
 """
