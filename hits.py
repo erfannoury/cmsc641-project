@@ -1,83 +1,83 @@
 import numpy as np
-import scipy as sc
-from scipy import linalg
-
 
 
 class HITS():
     """
-    Implementation of Hyperlink Induced Topic Search (HITS)- Using iterative method and SVD. 
+    Implementation of Hyperlink Induced Topic Search (HITS) using SVD and
+    power iteration methods.
     """
+    def __init__(self):
+        pass
 
-    def calculate(self,adj_mat):
+    def calculate(self, adj_mat):
+        """
+        HITS calculated using SVD method, instead of power iteration method,
+        to compute authority scores and hub scores. SVD decomposes A = U s V'.
+        First columns of U and V are first eigenvectors of AA' and A'A,
+        hub and authority scores. Authority scores of nodes are roughly
+        equivalent to PageRank score of nodes.
 
-        """HITS calculated using SVD method, instead of power iteration method,to compute authority scores and hub scores. SVD decomposes A = UsV'. 
-        First vectors of U and V, are first eigen vectors of AA' and A'A, hub and authority scores. Authority scores of nodes are roughly equivalent
-        to page rank of nodes.
-
-        
         Parameters
-        ------------------
-        adj_mat : n-by-n matrix
+        ----------
+        adj_mat: np.ndarray
+            This is the nonnegative square adjacency matrix of the web. Each
+            element (i, j) of the matrix is 1 if there is a link from web page
+            i to web page j, and 0 otherwise.
 
         Returns
-        ------------------
-        au_scores,hub_scores: 1-by-2 array of 1-by-n np.ndarray
+        -------
+        au_scores: numpy.ndarray
+            A vector indicating the authority score for each webpage.
         """
+        assert adj_mat.ndim == 2, 'Adjacency matrix should be of rank 2.'
+        assert adj_mat.shape[0] == adj_mat.shape[1], 'Adjacency matrix' \
+            ' should be square.'
+        assert np.all(adj_mat >= 0), 'All elements of the adjaceny matrix ' \
+            'should be nonnegative.'
 
-        U, s, VT = np.linalg.svd(adj_mat, full_matrices=True)
-        V = np.transpose(VT)
-        au_scores = -U[:,0]
-        hub_scores = -V[:,0]
+        U, _, _ = np.linalg.svd(adj_mat)
+        au_scores = -U[:, 0]
+        au_scores /= au_scores.sum()
 
         return au_scores
 
+    def iterative_calculate(self, adj_mat, iter_count):
+        """
+        HITS calculated using iterative power method, to compute the dominant
+        eigenvectors of authority matrix and hub matrix.
 
-    def iterative_calculate(self, adj_mat):
-
-        """HITS calculated using iterative power method, to compute the dominant eigen vector of authority matrix and hub matrix. 
-        Power iteration Method - Algorithm to compute the dominant eigen vector(v) of given matrix(A). Stops after num_simulations iterations.
-        
-        Parameters
-        ------------------
-        adj_mat : n-by-n matrix
+         Parameters
+        ----------
+        adj_mat: np.ndarray
+            The nonnegative square adjacency matrix of the web. Each element
+            (i, j) of the matrix is 1 if there is a link from web page
+            i to web page j, and 0 otherwise.
+        iter_count: int
+            Number of iterations of the Power method
 
         Returns
-        ------------------
-        au_scores,hub_scores: 1-by-2 array of 1-by-n np.ndarray
+        -------
+        au_scores: numpy.ndarray
+            A vector indicating the authority score for each webpage.
         """
-        num_simulations = 1000
+        assert adj_mat.ndim == 2, 'Adjacency matrix should be of rank 2.'
+        assert adj_mat.shape[0] == adj_mat.shape[1], 'Adjacency matrix' \
+            ' should be square.'
+        assert np.all(adj_mat >= 0), 'All elements of the adjaceny matrix ' \
+            'should be nonnegative.'
+
         au_mat = np.matmul(np.transpose(adj_mat), adj_mat)
-        hub_mat = np.matmul(adj_mat,np.transpose(adj_mat))
+        hub_mat = np.matmul(adj_mat, np.transpose(adj_mat))
 
         a = np.random.rand(au_mat.shape[0])
         h = np.random.rand(hub_mat.shape[0])
 
-        for _ in range(num_simulations):
+        for _ in range(iter_count):
             # calculate the matrix-by-vector product A*au
             a1 = np.dot(au_mat, a)
-            h1 = np.dot(hub_mat,h)
+            h1 = np.dot(hub_mat, h)
             # normalize the vector
             au_scores = a1 / np.linalg.norm(a1)
-            hub_scores = h1/np.linalg.norm(h1)
+            hub_scores = h1 / np.linalg.norm(h1)
 
-            # normalize again
-            au_scores = au_scores/np.linalg.norm(au_scores)
-            hub_scores = hub_scores/linalg.norm(hub_scores)
-
-        return au_scores
-
-    
-
-""" Sample
-adj_mat = np.array([[0, 0, 1, 0,0,0,0],[0, 1, 1, 0,0,0,0],[1, 0, 1, 2,0,0,0],[0,0,1, 1,0,0,0],[0, 0, 0, 0,0,0,1],[0, 0, 0, 0,0,1,1],[0, 0, 0, 2,1,0,1]])
-print(adj_mat)
-p1 = HITS()
-sol1 = p1.iterative_calculate(adj_mat)
-print('Power Interation')
-print(sol1)
-
-sol2 = p1.calculate(adj_mat)
-print('SVD')
-print(sol2) 
-"""
+        return au_scores / au_scores.sum()
