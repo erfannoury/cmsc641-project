@@ -4,6 +4,7 @@ import argparse
 import numpy as np
 
 from pagerank import PageRank
+from hits import HITS
 from utils import random_graph
 
 ALGORITHMS = ['pagerank', 'hits', 'mcpagerank', 'mchits']
@@ -45,6 +46,22 @@ def main(args):
         now = datetime.now()
         page_rank = pr.calculate(adj_mat)
         print('Calculating the PageRank took {}.'.format(datetime.now() - now))
+
+    elif args.algorithm == 'hits':
+        hits = HITS()
+
+        if args.random_data:
+            adj_mat = random_graph(args.num_nodes, args.sparsity)
+        else:
+            raise NotImplementedError('Creating adjacency matrix from '
+                                      'external sources not yet implemented.')
+
+        print('Running the HITS algorithm')
+        now = datetime.now()
+        au_scores = hits.calculate(adj_mat)
+        print('Calculating the Authority scores took {}.'.format(
+            datetime.now() - now))
+
     else:
         raise NotImplementedError('Selected algorithm not yet implemented.')
 
