@@ -171,7 +171,7 @@ class MCHITS():
                     if len(parents) + len(children) == 0:
                         break
                     neighbours = list(set(children + parents))
-                    next_idx = random_choice(neighbours)
+                    next_idx = utils.random_choice(neighbours)
                     if next_idx in children:
                         au_scores[next_idx] += 1
                     idx = next_idx
