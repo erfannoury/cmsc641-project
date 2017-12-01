@@ -50,12 +50,23 @@ if __name__ == '__main__':
         list(map(lambda x: x[0], alg_results['PageRank'])),
         list(map(lambda x: x[1], alg_results['PageRank'])),
         alpha=0.75,
+    )
+    ax.scatter(
+        list(map(lambda x: x[0], alg_results['PageRank'])),
+        list(map(lambda x: x[1], alg_results['PageRank'])),
+        alpha=0.8,
         label='PageRank'
     )
+
     ax.plot(
         list(map(lambda x: x[0], alg_results['HITS'])),
         list(map(lambda x: x[1], alg_results['HITS'])),
         alpha=0.75,
+    )
+    ax.scatter(
+        list(map(lambda x: x[0], alg_results['HITS'])),
+        list(map(lambda x: x[1], alg_results['HITS'])),
+        alpha=0.8,
         label='HITS',
     )
     ax.set_title('Top-10 error comparison')
