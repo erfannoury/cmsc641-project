@@ -127,7 +127,13 @@ class PageRank():
 class MCPageRank():
     """
     This is an implementation of the Monte Carlo PageRank algorithm for web
-    page importance analysis in the web.
+    page importance analysis in the web. This implementation is based on the
+    Algorithm 4 MC complete path stopping at dangling nodes of [1].
+
+    [1] Avrachenkov, Konstantin, Nelly Litvak, Danil Nemirovsky, and Natalia
+        Osipova. "Monte Carlo methods in PageRank computation: When one
+        iteration is sufficient." SIAM Journal on Numerical Analysis 45, no. 2
+        (2007): 890-904.
 
     Paramteres
     ----------
@@ -142,7 +148,7 @@ class MCPageRank():
                              'range (0, 1).')
         self.teleporting_prob = teleporting_prob
 
-    def calculate(self, adj_list, num_iter):
+    def calculate(self, adj_mat, num_iter, verbose=False):
         """
         Calculates the PageRank value for each webpage using the PageRank
         algorithm. In the Monte Carlo variant of the PageRank algorithm, each
@@ -153,18 +159,32 @@ class MCPageRank():
 
         Parameters
         ----------
-        adj_list: list
-            Adjacency list of the web matrix. Each element of the list is a
-            list of indices that have connections to the corresponding node.
+        adj_mat: np.ndarray
+            The nonnegative square adjacency matrix of the web. Each element
+            (i, j) of the matrix is 1 if there is a link from web page
+            i to web page j, and 0 otherwise.
         num_iter: int
             Number of iterations to run the Monte Carlo PageRank algorithm.
+        verbose: bool
+            Whether to return the algorithm runtime information.
 
         Returns
         -------
         page_rank: np.ndarray
             A vector indicating the PageRank value for each webpage.
+        delta: datetime.timedelta
+            If verbose is True, then the runtime of the algorithm will be
+            returned, too
         """
-        assert type(adj_list) == list, 'The adjacency list should be a list'
+        assert adj_mat.ndim == 2, 'Adjacency matrix should be of rank 2.'
+        assert adj_mat.shape[0] == adj_mat.shape[1], 'Adjacency matrix' \
+            ' should be square.'
+        assert np.all(adj_mat >= 0), 'All elements of the adjaceny matrix ' \
+            'should be nonnegative.'
+
+        adj_list = utils.adj_mat_to_list(adj_mat)
+
+        now = datetime.now()
 
         n = len(adj_list)
         page_rank = np.zeros((n, ), dtype=np.float64)
@@ -172,11 +192,17 @@ class MCPageRank():
             for j in range(n):
                 idx = j
                 while np.random.random() > self.teleporting_prob:
+                    page_rank[idx] += 1
                     if len(adj_list[idx]) == 0:
-                        idx = np.random.randint(0, n)
+                        break
                     else:
-                        idx = np.random.choice(adj_list[idx])
-                page_rank[idx] += 1
+                        idx = utils.random_choice(adj_list[idx])
 
-        page_rank /= (n * num_iter)
-        return page_rank
+        page_rank /= page_rank.sum()
+
+        delta = datetime.now() - now
+
+        if verbose:
+            return page_rank, delta
+        else:
+            return page_rank
