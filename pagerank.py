@@ -1,12 +1,12 @@
+from datetime import datetime
 import numpy as np
-import scipy as sc
-from scipy import linalg
+import utils
 
 
 class PageRank():
     """
     This is an implementation of the PageRank algorithm for web page importance
-    analysis in the web.
+    ranking in the web.
 
     Paramteres
     ----------
@@ -20,7 +20,7 @@ class PageRank():
                              'range (0, 1).')
         self.teleporting_prob = teleporting_prob
 
-    def calculate(self, adj_mat):
+    def calculate(self, adj_mat, verbose=False):
         """
         Calculates the PageRank value for each webpage using the PageRank
         algorithm. Instead of the power method, this implementation uses the
@@ -33,11 +33,16 @@ class PageRank():
             The nonnegative square adjacency matrix of the web. Each element
             (i, j) of the matrix is 1 if there is a link from web page
             i to web page j, and 0 otherwise.
+        verbose: bool
+            Whether to return the algorithm runtime information.
 
         Returns
         -------
         page_rank: np.ndarray
             A vector indicating the PageRank value for each webpage.
+        delta: datetime.timedelta
+            If verbose is True, then the runtime of the algorithm will be
+            returned, too
         """
         assert adj_mat.ndim == 2, 'Adjacency matrix should be of rank 2.'
         assert adj_mat.shape[0] == adj_mat.shape[1], 'Adjacency matrix' \
@@ -45,20 +50,27 @@ class PageRank():
         assert np.all(adj_mat >= 0), 'All elements of the adjaceny matrix ' \
             'should be nonnegative.'
 
+        now = datetime.now()
+
         A = np.divide(
             adj_mat,
             adj_mat.sum(axis=0, keepdims=True) + np.zeros_like(adj_mat),
             where=(adj_mat > 0))
-
         M = (1 - self.teleporting_prob) * A + \
             self.teleporting_prob * np.ones_like(A)
 
         w, vr = np.linalg.eig(M)
         max_idx = np.argmax(np.real(w))
-        page_rank = vr[:, max_idx] / np.sum(vr[:, max_idx])
-        return np.real(page_rank)
+        page_rank = np.real(vr[:, max_idx] / np.sum(vr[:, max_idx]))
 
-    def iterative_calculate(self, adj_mat, iter_count):
+        delta = datetime.now() - now
+
+        if verbose:
+            return page_rank, delta
+        else:
+            return page_rank
+
+    def iterative_calculate(self, adj_mat, iter_count, verbose=False):
         """
         Calculates the PageRank value for each webpage using the PageRank
         algorithm. This implementation uses the Power method.
@@ -71,17 +83,24 @@ class PageRank():
             i to web page j, and 0 otherwise.
         iter_count: int
             Number of iterations of the Power method
+        verbose: bool
+            Whether to return the algorithm runtime information.
 
         Returns
         -------
         page_rank: np.ndarray
             A vector indicating the PageRank value for each webpage.
+        delta: datetime.timedelta
+            If verbose is True, then the runtime of the algorithm will be
+            returned, too
         """
         assert adj_mat.ndim == 2, 'Adjacency matrix should be of rank 2.'
         assert adj_mat.shape[0] == adj_mat.shape[1], 'Adjacency matrix' \
             ' should be square.'
         assert np.all(adj_mat >= 0), 'All elements of the adjaceny matrix ' \
             'should be nonnegative.'
+
+        now = datetime.now()
 
         A = np.divide(
             adj_mat,
@@ -95,7 +114,14 @@ class PageRank():
             z = np.matmul(M, z)
 
         page_rank = z / z.sum()
-        return page_rank.reshape((-1, ))
+        page_rank = page_rank.reshape((-1, ))
+
+        delta = datetime.now() - now
+
+        if verbose:
+            return page_rank, delta
+        else:
+            return page_rank
 
 
 class MCPageRank():
