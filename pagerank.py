@@ -90,7 +90,7 @@ class PageRank():
         M = (1 - self.teleporting_prob) * A + \
             self.teleporting_prob * np.ones_like(A)
 
-        z = np.ones((M.shape[0], 1))
+        z = np.ones((M.shape[0], 1), dtype=np.float64) / M.shape[0]
         for _ in range(iter_count):
             z = np.matmul(M, z)
 
