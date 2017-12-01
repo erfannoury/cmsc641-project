@@ -21,6 +21,36 @@ def random_graph(node_count, prob):
         np.float64)
 
 
+def random_choice(arr):
+    """
+    Based on the suggestion by Radim Rehurek in this tweet:
+    https://twitter.com/RadimRehurek/status/928671225861296128
+
+    Results of comparison between this implementation and
+    numpy.random.choice:
+    ```
+    >>>> lst = range(100000)
+    >>>> timeit lst[np.searchsorted(uniform.cumsum(), np.random.random())]
+    213 µs ± 1.32 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
+
+    >>>> timeit np.random.choice(lst)
+    8.2 ms ± 70.7 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+    ```
+
+    Parameters
+    ----------
+    arr: list
+        A 1-D list or array from which to select an element randomly
+
+    Returns
+    -------
+    One element selected randomly from arr, with uniform probability
+    """
+    assert type(arr) is list or type(arr) is np.ndarray, 'List not provided!'
+    uniform = np.ones((len(arr), )) / len(arr)
+    return arr[np.searchsorted(uniform.cumsum(), np.random.random())]
+
+
 def adj_mat_to_list(adj_mat):
     """
     Converts an adjacency matrix to an adjacency list.
