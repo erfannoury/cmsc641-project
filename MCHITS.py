@@ -1,4 +1,7 @@
+from datetime import datetime
 import numpy as np
+import utils
+
 
 class MCHITS():
     """
@@ -18,13 +21,15 @@ class MCHITS():
                              'range [0, 1].')
         self.stopping_prob = stopping_prob
 
-    def calculate(self, adj_mat, num_iter):
+    def calculate(self, adj_mat, num_iter, verbose=False):
         """
-         In the Monte Carlo variant of the HITS algorithm, each
-        node is visited at each iteration and a random walk is initiated from source node. At each step, check termination condition. 
-        If termination condition not satified,continue random walk; pick neighbor from list (if current node i, neighbours include - all j's such that aij=1 is a child
-        and all j such that aji=1 is a father. If picked neighbour is child to current node i, then increment authority ai for i, else increment hub hi.  
-        Repeat step num_iter times and approximate ai and hi by dividing by total number of steps.
+        In the Monte Carlo variant of the HITS algorithm, each node is visited
+        at each iteration and a random walk is initiated from source node.
+        This is the MC-all variant of the MCHITS algorithm from [1].
+
+        [1] Jin, Zhaoyan, Dianxi Shi, Quanyuan Wu, and Hua Fan. "MCHITS: Monte
+            Carlo based method for hyperlink induced topic search on networks."
+            Journal of Networks 8, no. 10 (2013): 2376-2383.
 
         Parameters
         ----------
@@ -34,48 +39,49 @@ class MCHITS():
             i to web page j, and 0 otherwise.
         num_iter: int
             Number of iterations to run the Monte Carlo PageRank algorithm.
+        verbose: bool
+            Whether to return the algorithm runtime information.
 
         Returns
         -------
         au_scores: np.ndarray
             A vector indicating the authority score for each webpage.
+        delta: datetime.timedelta
+            If verbose is True, then the runtime of the algorithm will be
+            returned, too
         """
 
-        flatten = lambda tupleOfTuples: [element for tupl in tupleOfTuples for element in tupl]
-
         n = adj_mat.shape[0]
+        adj_list_children = utils.adj_mat_to_list(adj_mat)
+        adj_list_parents = utils.adj_mat_to_list(adj_mat.T)
 
-        au_scores = np.zeros((n,1), dtype=np.float64)
-        hub_scores = np.zeros((n,1), dtype=np.float64)
-        total_steps = np.zeros((n,1), dtype=np.float64)
+        au_scores = np.zeros((n, ), dtype=np.float64)
+        hub_scores = np.zeros((n, ), dtype=np.float64)
 
-        for _ in range(num_iter):
+        now = datetime.now()
+        total_steps = 0
+        for j in range(n):
+            idx = j
+            while np.random.random() > self.stopping_prob:
+                total_steps += 1
+                children = adj_list_children[idx]
+                parents = adj_list_parents[idx]
+                if len(parents) + len(children) == 0:
+                    break
+                neighbours = list(set(children + parents))
+                next_idx = random_choice(neighbours)
+                if next_idx in children:
+                    au_scores[next_idx] += 1
+                else:
+                    hub_scores[next_idx] += 1
+                idx = next_idx
 
-            for j in range(n):
-                
-                node = j
-                children = flatten(np.nonzero(adj_mat[j,:]))
-                father = flatten(np.nonzero(adj_mat[:,j]))
+        au_scores = au_scores / total_steps
+        au_scores /= au_scores.sum()
 
-                while np.random.random() > self.stopping_prob:
-                    #if (np.sum(children) + np.sum(father)) == 0:  #if there are no neighbours --> stop
+        delta = datetime.now() - now
 
-                    neighbours = list(set(children+father))
-                    # pick one neighbour at random
-                    next_step = np.random.choice(neighbours)
-                    total_steps[node]+=1
-                    if next_step in children:
-                        au_scores[node]+=1
-                    else:
-                        hub_scores[node]+=1
-
-        au_scores = au_scores/total_steps.sum()
-        return au_scores.reshape((1,n))
-
-"""
-p1 = MCHITS(0.5)
-adj_mat = np.array([[0, 0, 1, 0,0,0,0],[0, 1, 1, 0,0,0,0],[1, 0, 1, 2,0,0,0],[0,0,1, 1,0,0,0],[0, 0, 0, 0,0,0,1],[0, 0, 0, 0,0,1,1],[0, 0, 0, 2,1,0,1]])
-print(adj_mat)
-sol = p1.calculate(adj_mat,10)
-print(sol.sum())
-"""
+        if verbose:
+            return au_scores, delta
+        else:
+            return au_scores
