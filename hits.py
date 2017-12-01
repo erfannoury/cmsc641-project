@@ -117,9 +117,9 @@ class MCHITS():
     """
 
     def __init__(self, stopping_prob):
-        if not (0 <= stopping_prob <= 1):
+        if not (0 < stopping_prob < 1):
             raise ValueError('Stopping probability should be in the '
-                             'range [0, 1].')
+                             'range (0, 1).')
         self.stopping_prob = stopping_prob
 
     def calculate(self, adj_mat, num_iter, verbose=False):

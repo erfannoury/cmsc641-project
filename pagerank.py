@@ -15,9 +15,9 @@ class PageRank():
         will jump to an arbitrary web page on the web.
     """
     def __init__(self, teleporting_prob):
-        if not (0 <= teleporting_prob <= 1):
+        if not (0 < teleporting_prob < 1):
             raise ValueError('Teleporting probabilityt should be in the '
-                             'range [0, 1].')
+                             'range (0, 1).')
         self.teleporting_prob = teleporting_prob
 
     def calculate(self, adj_mat):
@@ -111,9 +111,9 @@ class MCPageRank():
     """
 
     def __init__(self, teleporting_prob):
-        if not (0 <= teleporting_prob <= 1):
+        if not (0 < teleporting_prob < 1):
             raise ValueError('Teleporting probability should be in the '
-                             'range [0, 1].')
+                             'range (0, 1).')
         self.teleporting_prob = teleporting_prob
 
     def calculate(self, adj_list, num_iter):
