@@ -61,7 +61,8 @@ class PageRank():
 
         w, vr = np.linalg.eig(M)
         max_idx = np.argmax(np.real(w))
-        page_rank = np.real(vr[:, max_idx] / np.sum(vr[:, max_idx]))
+        vr = vr[:, max_idx]
+        page_rank = np.real(vr / (np.sum(vr) + np.finfo(np.float64).eps))
 
         delta = datetime.now() - now
 
@@ -113,7 +114,7 @@ class PageRank():
         for _ in range(iter_count):
             z = np.matmul(M, z)
 
-        page_rank = z / z.sum()
+        page_rank = z / (z.sum() + np.finfo(np.float64).eps)
         page_rank = page_rank.reshape((-1, ))
 
         delta = datetime.now() - now
@@ -198,7 +199,7 @@ class MCPageRank():
                     else:
                         idx = utils.random_choice(adj_list[idx])
 
-        page_rank /= page_rank.sum()
+        page_rank /= (page_rank.sum() + np.finfo(np.float64).eps)
 
         delta = datetime.now() - now
 

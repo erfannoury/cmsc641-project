@@ -46,7 +46,7 @@ class HITS():
 
         U, _, _ = np.linalg.svd(adj_mat)
         au_scores = (-U[:, 0]).astype(np.float64)
-        au_scores /= au_scores.sum()
+        au_scores /= (au_scores.sum() + np.finfo(np.float64).eps)
 
         delta = datetime.now() - now
         if verbose:
@@ -93,9 +93,9 @@ class HITS():
         for _ in range(num_iter):
             au_scores = np.dot(au_mat, au_scores)
 
-            au_scores /= np.linalg.norm(au_scores)
+            au_scores /= (np.linalg.norm(au_scores) + np.finfo(np.float64).eps)
 
-        au_scores /= au_scores.sum()
+        au_scores /= (au_scores.sum() + np.finfo(np.float64).eps)
         delta = datetime.now() - now
 
         if verbose:
@@ -177,7 +177,7 @@ class MCHITS():
                     idx = next_idx
 
         au_scores = au_scores / total_steps
-        au_scores /= au_scores.sum()
+        au_scores /= (au_scores.sum() + np.finfo(np.float64).eps)
 
         delta = datetime.now() - now
 
