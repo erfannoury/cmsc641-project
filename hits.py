@@ -11,7 +11,7 @@ class HITS():
     def __init__(self):
         pass
 
-    def calculate(self, adj_mat):
+    def calculate(self, adj_mat, verbose=False):
         """
         HITS calculated using SVD method, instead of power iteration method,
         to compute authority scores and hub scores. SVD decomposes A = U s V'.
@@ -25,11 +25,16 @@ class HITS():
             This is the nonnegative square adjacency matrix of the web. Each
             element (i, j) of the matrix is 1 if there is a link from web page
             i to web page j, and 0 otherwise.
+        verbose: bool
+            Whether to return the algorithm runtime information.
 
         Returns
         -------
         au_scores: numpy.ndarray
             A vector indicating the authority score for each webpage.
+        delta: datetime.timedelta
+            If verbose is True, then the runtime of the algorithm will be
+            returned, too
         """
         assert adj_mat.ndim == 2, 'Adjacency matrix should be of rank 2.'
         assert adj_mat.shape[0] == adj_mat.shape[1], 'Adjacency matrix' \
@@ -37,13 +42,19 @@ class HITS():
         assert np.all(adj_mat >= 0), 'All elements of the adjaceny matrix ' \
             'should be nonnegative.'
 
+        now = datetime.now()
+
         U, _, _ = np.linalg.svd(adj_mat)
-        au_scores = -U[:, 0]
+        au_scores = (-U[:, 0]).astype(np.float64)
         au_scores /= au_scores.sum()
 
-        return au_scores
+        delta = datetime.now() - now
+        if verbose:
+            return au_scores, delta
+        else:
+            return au_scores
 
-    def iterative_calculate(self, adj_mat, iter_count):
+    def iterative_calculate(self, adj_mat, num_iter, verbose=False):
         """
         HITS calculated using iterative power method, to compute the dominant
         eigenvectors of authority matrix and hub matrix.
@@ -54,13 +65,18 @@ class HITS():
             The nonnegative square adjacency matrix of the web. Each element
             (i, j) of the matrix is 1 if there is a link from web page
             i to web page j, and 0 otherwise.
-        iter_count: int
+        num_iter: int
             Number of iterations of the Power method
+        verbose: bool
+            Whether to return the algorithm runtime information.
 
         Returns
         -------
         au_scores: numpy.ndarray
             A vector indicating the authority score for each webpage.
+        delta: datetime.timedelta
+            If verbose is True, then the runtime of the algorithm will be
+            returned, too
         """
         assert adj_mat.ndim == 2, 'Adjacency matrix should be of rank 2.'
         assert adj_mat.shape[0] == adj_mat.shape[1], 'Adjacency matrix' \
@@ -68,21 +84,24 @@ class HITS():
         assert np.all(adj_mat >= 0), 'All elements of the adjaceny matrix ' \
             'should be nonnegative.'
 
-        au_mat = np.matmul(np.transpose(adj_mat), adj_mat)
-        hub_mat = np.matmul(adj_mat, np.transpose(adj_mat))
+        now = datetime.now()
 
-        a = np.random.rand(au_mat.shape[0])
-        h = np.random.rand(hub_mat.shape[0])
+        au_mat = np.matmul(adj_mat.T, adj_mat)
 
-        for _ in range(iter_count):
-            # calculate the matrix-by-vector product A*au
-            a1 = np.dot(au_mat, a)
-            h1 = np.dot(hub_mat, h)
-            # normalize the vector
-            au_scores = a1 / np.linalg.norm(a1)
-            hub_scores = h1 / np.linalg.norm(h1)
+        au_scores = np.random.rand(au_mat.shape[0]).astype(np.float64)
 
-        return au_scores / au_scores.sum()
+        for _ in range(num_iter):
+            au_scores = np.dot(au_mat, au_scores)
+
+            au_scores /= np.linalg.norm(au_scores)
+
+        au_scores /= au_scores.sum()
+        delta = datetime.now() - now
+
+        if verbose:
+            return au_scores, delta
+        else:
+            return au_scores
 
 
 class MCHITS():
@@ -137,26 +156,25 @@ class MCHITS():
         adj_list_children = utils.adj_mat_to_list(adj_mat)
         adj_list_parents = utils.adj_mat_to_list(adj_mat.T)
 
-        au_scores = np.zeros((n, ), dtype=np.float64)
-        hub_scores = np.zeros((n, ), dtype=np.float64)
-
         now = datetime.now()
+
+        au_scores = np.zeros((n, ), dtype=np.float64)
+
         total_steps = 0
-        for j in range(n):
-            idx = j
-            while np.random.random() > self.stopping_prob:
-                total_steps += 1
-                children = adj_list_children[idx]
-                parents = adj_list_parents[idx]
-                if len(parents) + len(children) == 0:
-                    break
-                neighbours = list(set(children + parents))
-                next_idx = random_choice(neighbours)
-                if next_idx in children:
-                    au_scores[next_idx] += 1
-                else:
-                    hub_scores[next_idx] += 1
-                idx = next_idx
+        for _ in range(num_iter):
+            for j in range(n):
+                idx = j
+                while np.random.random() > self.stopping_prob:
+                    total_steps += 1
+                    children = adj_list_children[idx]
+                    parents = adj_list_parents[idx]
+                    if len(parents) + len(children) == 0:
+                        break
+                    neighbours = list(set(children + parents))
+                    next_idx = random_choice(neighbours)
+                    if next_idx in children:
+                        au_scores[next_idx] += 1
+                    idx = next_idx
 
         au_scores = au_scores / total_steps
         au_scores /= au_scores.sum()
